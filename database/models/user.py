@@ -12,5 +12,5 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     current_workout_plan_id = Column(Integer, ForeignKey('workout_plans.id', deferrable=True, initially="DEFERRED"), nullable=True)
     workout_plans = relationship("WorkoutPlan", foreign_keys="WorkoutPlan.user_id", back_populates="user")
-    current_workout_plan = relationship("WorkoutPlan", foreign_keys=[current_workout_plan_id], uselist=False)
+    current_workout_plan = relationship("WorkoutPlan", foreign_keys=[current_workout_plan_id], uselist=False, post_update=True)
     lift_records = relationship("LiftRecord", back_populates="user")
