@@ -2,12 +2,14 @@ from logging.config import fileConfig
 from sqlalchemy import engine_from_config, pool
 from alembic import context
 
-# Import your models
 import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-from database.models import Base, User, WorkoutPlan, LiftRecord
+from database.models.base import Base
+from database.models.user import User
+from database.models.workout_plan import WorkoutPlan
+from database.models.lift_record import LiftRecord
 from config import DATABASE_URL
 
 config = context.config

@@ -1,7 +1,9 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from contextlib import contextmanager
-from .models import Base, User, WorkoutPlan
+from .models.base import Base
+from .models.user import User
+from .models.workout_plan import WorkoutPlan
 from config import DATABASE_URL
 
 engine = create_engine(DATABASE_URL)
