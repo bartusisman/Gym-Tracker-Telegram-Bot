@@ -3,6 +3,7 @@ from telegram.ext import ContextTypes, ConversationHandler
 from data.constants import SELECTING_DAYS, SELECTING_EXERCISES, user_data, WEEKDAYS
 from data.exercises import EXERCISES
 from utils.keyboard_utils import create_weekday_keyboard
+from database.db_operations import save_workout_plan
 
 async def day_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle day selection."""
@@ -247,6 +248,12 @@ async def finish_day(update: Update, context: ContextTypes.DEFAULT_TYPE):
             for exercise in user_data[user_id]["workouts"][day]:
                 workout_summary += f"• {exercise}\n"
             workout_summary += "\n"
+        
+        await save_workout_plan(
+            telegram_id=user_id,
+            days=list(selected_days),
+            exercises=user_data[user_id]["workouts"]
+        )
         
         await query.edit_message_text(
             workout_summary,
