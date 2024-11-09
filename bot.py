@@ -6,18 +6,33 @@ from telegram.ext import (
     ConversationHandler,
 )
 from config import TOKEN
-from handlers.command_handlers import start, help_command, cancel
+from database.db_operations import get_db
+from sqlalchemy import text
+from handlers.command_handlers import start, help_command, cancel, view_workout
 from handlers.conversation_handlers import workout
 from handlers.callback_handlers import day_selection, exercise_selection, handle_exercise_selection, back_to_categories, finish_day
 from data.constants import SELECTING_DAYS, SELECTING_EXERCISES
 
+def check_db_connection():
+    try:
+        with get_db() as db:
+            db.execute(text("SELECT 1"))
+            print("✅ Database connection successful!")
+    except Exception as e:
+        print(f"❌ Database connection failed: {e}")
+        raise e
+
 def main():
     """Start the bot."""
+    # Check database connection
+    check_db_connection()
+    
     application = Application.builder().token(TOKEN).build()
 
     # Add command handlers
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_command))
+    application.add_handler(CommandHandler("viewworkout", view_workout))
     
     # Add conversation handler
     conv_handler = ConversationHandler(

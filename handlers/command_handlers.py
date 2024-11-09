@@ -1,6 +1,8 @@
 from telegram import Update
 from telegram.ext import ContextTypes, ConversationHandler
 from data.constants import user_data
+from database.db_operations import get_current_workout_plan
+from data.constants import WEEKDAYS
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Start the conversation and ask user for input."""
@@ -54,3 +56,37 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         "Workout planning cancelled. Use /workout to start again."
     )
     return ConversationHandler.END
+
+
+
+async def view_workout(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Display user's current workout plan."""
+    user_id = update.effective_user.id
+    print(f"User ID: {user_id}")
+    
+    current_plan = await get_current_workout_plan(user_id)
+    print(f"Current Plan: {current_plan}")
+    
+    if not current_plan:
+        await update.message.reply_text(
+            "You don't have a workout plan yet. Use /workout to create one!"
+        )
+        return
+    
+    # Get all weekdays and mark non-workout days as rest days
+    all_days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    message = "*Your Current Workout Plan:*\n\n"
+    
+    for day in all_days:
+        message += f"*{day}*:\n"
+        if day in current_plan.days:
+            for exercise in current_plan.exercises.get(day, []):
+                message += f"• {exercise}\n"
+        else:
+            message += "• Rest Day 😴\n"
+        message += "\n"
+    
+    await update.message.reply_text(
+        message,
+        parse_mode='Markdown'
+    )
