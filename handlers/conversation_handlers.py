@@ -4,6 +4,7 @@ from data.constants import SELECTING_DAYS, SELECTING_EXERCISES, user_data, WEEKD
 from data.exercises import EXERCISES
 from utils.keyboard_utils import create_weekday_keyboard
 from database.db_operations import get_or_create_user, get_current_workout_plan
+from handlers.command_handlers import view_workout
 
 async def workout(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Start the workout planning process."""
@@ -17,16 +18,13 @@ async def workout(update: Update, context: ContextTypes.DEFAULT_TYPE):
     current_plan = await get_current_workout_plan(user_id)
     
     if current_plan:
-        user_data[user_id] = {
-            "selected_days": set(current_plan.days),
-            "workouts": current_plan.exercises
-        }
-        keyboard = create_weekday_keyboard(current_plan.days)
-        message = "You have an existing workout plan. Select days to modify:"
-    else:
-        user_data[user_id] = {"selected_days": set(), "workouts": {}}
-        keyboard = create_weekday_keyboard()
-        message = "Select your workout days:"
+        # Call view_workout directly
+        await view_workout(update, context)
+        return ConversationHandler.END
+    
+    user_data[user_id] = {"selected_days": set(), "workouts": {}}
+    keyboard = create_weekday_keyboard()
+    message = "Select your workout days:"
 
     reply_markup = InlineKeyboardMarkup(keyboard)
     await update.message.reply_text(message, reply_markup=reply_markup)

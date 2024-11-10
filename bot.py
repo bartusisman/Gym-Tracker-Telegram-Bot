@@ -34,9 +34,15 @@ def main():
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CommandHandler("viewworkout", view_workout))
     
+    # Add callback handler for edit button
+    application.add_handler(CallbackQueryHandler(workout, pattern="^edit_workout$"))
+    
     # Add conversation handler
     conv_handler = ConversationHandler(
-        entry_points=[CommandHandler("workout", workout)],
+        entry_points=[
+            CommandHandler("workout", workout),
+            CallbackQueryHandler(workout, pattern="^edit_workout$")
+        ],
         states={
             SELECTING_DAYS: [
                 CallbackQueryHandler(day_selection, pattern="^day_|days_done")

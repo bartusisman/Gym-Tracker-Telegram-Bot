@@ -201,62 +201,45 @@ async def finish_day(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     # Save exercises for current day
     user_data[user_id]["workouts"][current_day] = list(selected_exercises)
-    
-    # Clear selected exercises for next day
-    user_data[user_id]["selected_exercises"] = set()
-    
-    # Check if there are more days to process
     selected_days = sorted(
         user_data[user_id]["selected_days"],
         key=lambda x: list(WEEKDAYS.keys()).index(x)
     )
-
-    current_day_index = selected_days.index(current_day)
     
-    # Create progress header
-    progress_header = "Workout Planning Progress:\n"
-    for day in selected_days:
-        if day in user_data[user_id]["workouts"]:
-            progress_header += f"✅ {day}\n"
-        elif day == current_day:
-            progress_header += f"🔄 {day} (Current)\n"
-        else:
-            progress_header += f"⏳ {day}\n"
-    progress_header += "\n"
-    
-    if current_day_index + 1 < len(selected_days):
-        # Move to next day
-        next_day = selected_days[current_day_index + 1]
-        user_data[user_id]["current_day"] = next_day
-        
-        # Show categories for next day
-        keyboard = []
-        for category in EXERCISES.keys():
-            keyboard.append([InlineKeyboardButton(category, callback_data=f"cat_{category}")])
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        
-        await query.edit_message_text(
-            f"{progress_header}Select exercises for {next_day}:",
-            reply_markup=reply_markup
-        )
-        return SELECTING_EXERCISES
-    else:
-        # All days are done
-        workout_summary = f"{progress_header}*Your Complete Workout Plan:*\n\n"
-        for day in selected_days:
-            workout_summary += f"*{day}*:\n"
-            for exercise in user_data[user_id]["workouts"][day]:
-                workout_summary += f"• {exercise}\n"
-            workout_summary += "\n"
-        
+    # If all days are done, save the plan and show viewworkout
+    if current_day == selected_days[-1]:
         await save_workout_plan(
             telegram_id=user_id,
             days=list(selected_days),
             exercises=user_data[user_id]["workouts"]
         )
         
-        await query.edit_message_text(
-            workout_summary,
-            parse_mode='Markdown'
-        )
+        # Delete the previous message
+        await query.message.delete()
+        
+        # Call view_workout directly
+        from handlers.command_handlers import view_workout
+        await view_workout(update, context)
         return ConversationHandler.END
+        
+    # Continue with next day if not finished
+    return await handle_next_day(update, context, user_id, selected_days, current_day)
+
+async def handle_next_day(update, context, user_id, selected_days, current_day):
+    """Helper function to handle transition to next day"""
+    query = update.callback_query
+    current_day_index = selected_days.index(current_day)
+    next_day = selected_days[current_day_index + 1]
+    user_data[user_id]["current_day"] = next_day
+    user_data[user_id]["selected_exercises"] = set()
+    
+    keyboard = []
+    for category in EXERCISES.keys():
+        keyboard.append([InlineKeyboardButton(category, callback_data=f"cat_{category}")])
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await query.edit_message_text(
+        f"Select exercises for {next_day}:",
+        reply_markup=reply_markup
+    )
+    return SELECTING_EXERCISES

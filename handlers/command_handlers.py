@@ -1,4 +1,4 @@
-from telegram import Update
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes, ConversationHandler
 from data.constants import user_data
 from database.db_operations import get_current_workout_plan
@@ -34,7 +34,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     • View full weekly schedule
 /lifts - Record your lift numbers
     • Track your main lifts
-    • Add weight and reps
+    �� Add weight and reps
 /viewlifts - Check your lifting progress
     • See your PR history
     • Track improvements
@@ -86,7 +86,12 @@ async def view_workout(update: Update, context: ContextTypes.DEFAULT_TYPE):
             message += "• Rest Day 😴\n"
         message += "\n"
     
+    # Create edit button
+    keyboard = [[InlineKeyboardButton("Edit Workout Plan ✏️", callback_data="edit_workout")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
     await update.message.reply_text(
         message,
-        parse_mode='Markdown'
+        parse_mode='Markdown',
+        reply_markup=reply_markup
     )
