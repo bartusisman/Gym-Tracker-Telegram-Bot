@@ -34,7 +34,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     • View full weekly schedule
 /lifts - Record your lift numbers
     • Track your main lifts
-    �� Add weight and reps
+     Add weight and reps
 /viewlifts - Check your lifting progress
     • See your PR history
     • Track improvements
@@ -62,15 +62,15 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 async def view_workout(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Display user's current workout plan."""
     user_id = update.effective_user.id
-    print(f"User ID: {user_id}")
     
     current_plan = await get_current_workout_plan(user_id)
-    print(f"Current Plan: {current_plan}")
     
     if not current_plan:
-        await update.message.reply_text(
-            "You don't have a workout plan yet. Use /workout to create one!"
-        )
+        message = "You don't have a workout plan yet. Use /workout to create one!"
+        if update.callback_query:
+            await update.callback_query.message.reply_text(message)
+        else:
+            await update.message.reply_text(message)
         return
     
     # Get all weekdays and mark non-workout days as rest days
@@ -90,8 +90,16 @@ async def view_workout(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [[InlineKeyboardButton("Edit Workout Plan ✏️", callback_data="edit_workout")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
     
-    await update.message.reply_text(
-        message,
-        parse_mode='Markdown',
-        reply_markup=reply_markup
-    )
+    # Handle both callback queries and direct commands
+    if update.callback_query:
+        await update.callback_query.message.reply_text(
+            message,
+            parse_mode='Markdown',
+            reply_markup=reply_markup
+        )
+    else:
+        await update.message.reply_text(
+            message,
+            parse_mode='Markdown',
+            reply_markup=reply_markup
+        )

@@ -4,6 +4,7 @@ from data.constants import SELECTING_DAYS, SELECTING_EXERCISES, user_data, WEEKD
 from data.exercises import EXERCISES
 from utils.keyboard_utils import create_weekday_keyboard
 from database.db_operations import save_workout_plan
+from utils.message_utils import create_progress_header
 
 async def day_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle day selection."""
@@ -71,17 +72,12 @@ async def exercise_selection(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
     category = query.data.replace("cat_", "")
     
-    # Create progress header
-    selected_days = sorted(user_data[user_id]["selected_days"])
-    progress_header = "Workout Planning Progress:\n"
-    for day in selected_days:
-        if day in user_data[user_id]["workouts"]:
-            progress_header += f"✅ {day}\n"
-        elif day == user_data[user_id]["current_day"]:
-            progress_header += f"🔄 {day} (Current)\n"
-        else:
-            progress_header += f"⏳ {day}\n"
-    progress_header += "\n"
+    # Use utility function for progress header
+    progress_header = create_progress_header(
+        user_data[user_id]["selected_days"],
+        user_data[user_id]["current_day"],
+        user_data[user_id]["workouts"]
+    )
     
     keyboard = []
     for exercise in EXERCISES[category]:
@@ -116,17 +112,12 @@ async def handle_exercise_selection(update: Update, context: ContextTypes.DEFAUL
     else:
         user_data[user_id]["selected_exercises"].add(exercise)
     
-    # Create progress header
-    selected_days = sorted(user_data[user_id]["selected_days"])
-    progress_header = "Workout Planning Progress:\n"
-    for day in selected_days:
-        if day in user_data[user_id]["workouts"]:
-            progress_header += f"✅ {day}\n"
-        elif day == user_data[user_id]["current_day"]:
-            progress_header += f"🔄 {day} (Current)\n"
-        else:
-            progress_header += f"⏳ {day}\n"
-    progress_header += "\n"
+    # Use utility function for progress header
+    progress_header = create_progress_header(
+        user_data[user_id]["selected_days"],
+        user_data[user_id]["current_day"],
+        user_data[user_id]["workouts"]
+    )
     
     # Recreate keyboard with updated selections
     category = next(cat for cat, exercises in EXERCISES.items() if exercise in exercises)
